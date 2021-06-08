@@ -2,11 +2,6 @@ package pubsub
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"runtime/debug"
-
-	"github.com/getsentry/raven-go"
 )
 
 type Publisher interface {
