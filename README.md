@@ -1,2 +1,2 @@
-# beagle
+# goose
 go common library and tools
