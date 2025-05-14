@@ -1,4 +1,4 @@
-module goose
+module github.com/kelub/goose
 
 go 1.24.1
 
