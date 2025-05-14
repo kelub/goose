@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  goose-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: goose-test
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: ["go", "test", "-v", "./..."]
