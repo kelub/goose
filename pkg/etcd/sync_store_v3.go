@@ -12,6 +12,17 @@ import (
 	"go.etcd.io/etcd/client/v3"
 )
 
+type ETCDSyncStoreInterface interface {
+	// Get retrieves the value for a given key from the sync store.
+	Get(key string) (bool, string, error)
+
+	// Len returns the number of keys in the sync store.
+	Len() int
+
+	// Map returns a map of the keys in the sync store.
+	Map() map[string]string
+}
+
 // ETCDSyncStore is a sync store that uses etcd as the backend.
 type ETCDSyncStore struct {
 	data      map[string]string

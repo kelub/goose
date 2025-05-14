@@ -14,24 +14,47 @@ import (
 	"go.etcd.io/etcd/server/v3/mvcc"
 )
 
-// getPrefixLastKey returns the last key in the prefix.
-func getPrefixLastKey(strkey string) string {
-	key := []byte(strkey)
+// DefaultTraverseOption is the default traverse option.
+var DefaultTraverseOption TraverseOption
 
-	end := make([]byte, len(key))
-	copy(end, key)
-	for i := len(end) - 1; i >= 0; i-- {
-		if end[i] < 0xff {
-			end[i] = end[i] + 1
-			end = end[:i+1]
-			return string(end)
-		}
+func init() {
+	DefaultTraverseOption = TraverseOption{
+		PageSize: 20,
+		Interval: time.Second,
 	}
-	return "\x00"
 }
 
-type SetOption struct {
-	TTL time.Duration
+// ETCDV3ClientInterface defines the interface for etcd v3 client operations
+type ETCDV3ClientInterface interface {
+	// RawClient returns the underlying etcd v3 client instance
+	RawClient() *clientv3.Client
+
+	// SetPrefix sets the prefix for all keys
+	SetPrefix(prefix string)
+
+	// Get retrieves the value for a given key
+	Get(ctx context.Context, key string) (bool, string, error)
+
+	// GetObject retrieves and unmarshals the value for a given key into an object
+	GetObject(ctx context.Context, key string, obj interface{}) (bool, error)
+
+	// Set sets the value for a given key
+	Set(ctx context.Context, key, value string, opt *SetOption) error
+
+	// SetObject marshals an object and sets it for a given key
+	SetObject(ctx context.Context, key string, obj interface{}, opt *SetOption) error
+
+	// Delete deletes a given key
+	Delete(ctx context.Context, key string) error
+
+	// DeleteDir deletes a directory and all its contents
+	DeleteDir(ctx context.Context, dir string) (int64, error)
+
+	// WatchDir watches a directory for changes
+	WatchDir(ctx context.Context, dir string, opts ...clientv3.OpOption) <-chan Response
+
+	// TraverseDir traverses a directory and returns its contents
+	TraverseDir(ctx context.Context, dir string, opt TraverseOption) (<-chan Response, <-chan error)
 }
 
 // ETCDV3Client is a client wrapper for interacting with an etcd cluster.
@@ -60,12 +83,15 @@ type Response struct {
 	Err    error
 }
 
-func (resp Response) IsPut() bool {
-	return resp.Action == "PUT"
+// SetOption defines options for setting values in etcd
+type SetOption struct {
+	TTL time.Duration
 }
 
-func (resp Response) IsDelete() bool {
-	return resp.Action == "DELETE"
+// TraverseOption defines the options for traversing a directory in etcd.
+type TraverseOption struct {
+	PageSize int64
+	Interval time.Duration
 }
 
 // NewETCDV3Client creates and initializes a new ETCDV3Client.
@@ -319,24 +345,6 @@ func (etcd *ETCDV3Client) WatchDir(ctx context.Context, dir string, opts ...clie
 	return ch
 }
 
-// TraverseOption defines the options for traversing a directory in etcd.
-//
-// It contains the page size and interval for the traversal operation.
-type TraverseOption struct {
-	PageSize int64
-	Interval time.Duration
-}
-
-// DefaultTraverseOption is the default traverse option.
-var DefaultTraverseOption TraverseOption
-
-func init() {
-	DefaultTraverseOption = TraverseOption{
-		PageSize: 20,
-		Interval: time.Second,
-	}
-}
-
 // TraverseDir traverses a directory in etcd and returns a channel of responses and an error channel.
 //
 // Parameters:
@@ -401,4 +409,29 @@ func (etcd *ETCDV3Client) TraverseDir(ctx context.Context, dir string, opt Trave
 	}()
 
 	return ch, errch
+}
+
+// Response helper methods
+func (resp Response) IsPut() bool {
+	return resp.Action == "PUT"
+}
+
+func (resp Response) IsDelete() bool {
+	return resp.Action == "DELETE"
+}
+
+// getPrefixLastKey returns the last key in the prefix.
+func getPrefixLastKey(strkey string) string {
+	key := []byte(strkey)
+
+	end := make([]byte, len(key))
+	copy(end, key)
+	for i := len(end) - 1; i >= 0; i-- {
+		if end[i] < 0xff {
+			end[i] = end[i] + 1
+			end = end[:i+1]
+			return string(end)
+		}
+	}
+	return "\x00"
 }
