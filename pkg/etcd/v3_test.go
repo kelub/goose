@@ -28,8 +28,6 @@ func TestETCDClientV3Suite(t *testing.T) {
 
 func (suite *ETCDClientV3Suite) SetupSuite() {
 	fmt.Println("=== Starting Embedded ETCD ===")
-
-	// 创建临时目录存放数据
 	dataDir := "default.etcd"
 	if err := os.RemoveAll(dataDir); err != nil {
 		suite.FailNow("Failed to clean data dir", err)
@@ -50,11 +48,6 @@ func (suite *ETCDClientV3Suite) SetupSuite() {
 		suite.FailNow("ETCD Server took too long to start.")
 	}
 
-	//client, err := clientv3.New(clientv3.Config{
-	//	Endpoints:   []string{"0.0.0.0:2379"},
-	//	DialTimeout: 5 * time.Second,
-	//})
-	//suite.Require().NoError(err)
 	suite.Client, err = NewETCDV3Client([]string{"0.0.0.0:2379"}, 5*time.Second)
 	suite.Require().NoError(err)
 	suite.prefix = "/test"
