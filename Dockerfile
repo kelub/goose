@@ -21,7 +21,6 @@ WORKDIR /app
 # 复制构建后的二进制和源代码
 COPY --from=builder /bin/goose /app/goose
 COPY --from=builder /app/pkg /app/pkg
-COPY --from=builder /app/cmd /app/cmd
 
 # 设置默认执行命令：跑所有的测试
 CMD ["go", "test", "-v", "./..."]
