@@ -27,12 +27,12 @@ const (
 
 var (
 	// serverStartedCounter is a counter metric that tracks the total number of RPCs started on the server.
-	serverStartedCounter = prom.NewPromVec("samoyed").
+	serverStartedCounter = prom.NewPromVec("goose").
 				Counter("grpc_server_started_total",
 			"Total number of RPCs started on the server.",
 			[]string{"grpc_type", "grpc_service", "grpc_method", "origin", "referrer"})
 	// serverHandledCounter is a counter metric that tracks the total number of RPCs completed on the server.
-	serverHandledCounter = prom.NewPromVec("samoyed").
+	serverHandledCounter = prom.NewPromVec("goose").
 				Counter("grpc_server_handled_total",
 			"Total number of RPCs completed on the server, regardless of success or failure.",
 			[]string{"grpc_type", "grpc_service", "grpc_method", "origin", "referrer", "grpc_code"}).
