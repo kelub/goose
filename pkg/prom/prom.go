@@ -1,3 +1,4 @@
+// Package prom provides a prometheus metricVec
 package prom
 
 import (
